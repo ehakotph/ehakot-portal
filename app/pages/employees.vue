@@ -9,9 +9,61 @@
             <UButton @click="open = true; form.role = 'driver'; isEditing = false;" label="Create New User" />
 
             <template #body>
-              Create/Update employees
+                <div class="flex flex-col gap-y-2">
+                    <USelectMenu
+                        v-model="form.email"
+                        :items="availableUsers"
+                        value-key="email"
+                        label-key="email"
+                        class="w-full"
+                        icon="i-lucide-building-2"
+                        @update:model-value="onEmailChange"
+                    >
+                        <template #item-label="{ item }">
+                            <div class="flex flex-col">
+                                <span>{{ item.name }}</span>
+                            </div>
+                        </template>
+                    </USelectMenu>
 
+                    <USelectMenu
+                        :disabled="!isSuperAdmin"
+                        v-model="form.role"
+                        :items="[{label: 'Admin', value: 'admin'}, {label: 'Driver', value: 'driver'}]"
+                        value-key="value"
+                        label-key="label"
+                        class="w-full"
+                        icon="i-lucide-building-2"
+                    >
+                        <template #item-label="{ item }">
+                            <div class="flex flex-col">
+                                <span>{{ item.label }}</span>
+                            </div>
+                        </template>
+                    </USelectMenu>
+
+                    <UInput
+                    v-model="form.password"
+                    placeholder="Password"
+                    :type="show ? 'text' : 'password'"
+                    :ui="{ trailing: 'pe-1' }"
+                    >
+                        <template #trailing>
+                        <UButton
+                            color="neutral"
+                            variant="link"
+                            size="sm"
+                            :icon="show ? 'i-lucide-eye-off' : 'i-lucide-eye'"
+                            :aria-label="show ? 'Hide password' : 'Show password'"
+                            :aria-pressed="show"
+                            aria-controls="password"
+                            @click="show = !show"
+                        />
+                        </template>
+                    </UInput>
+                </div>
             </template>
+
             <template #footer>
                 <UButton 
                 @click="onSubmit" 
@@ -98,9 +150,36 @@ const hasChanges = computed(() => {
 const isSuperAdmin = computed(() => user.value?.role === 'superadmin');
 
 const onSubmit = async () => {
+    try {
+        await useUsers().setUsers(form.value, form.value.id || 0);
+
+        open.value = false;
+        form.value.email = '';
+        form.value.password = '';
+        form.value.role = 'driver';
+        form.value.id = undefined;
+
+        await getUsers();
+    } catch (error) {
+        throw error;
+    }
 }
 
 const editing = (user: User) => {
+    isEditing.value = true;
+    open.value = true;
+
+    form.value.email = user.email;
+    form.value.password = user.password ?? '';
+    form.value.role = user.role as 'admin' | 'driver';
+    form.value.id = user.id;
+
+    editForm.value = {
+        id: user.id,
+        email: user.email,
+        password: user.password ?? '',
+        role: user.role as 'admin' | 'driver'
+    }
 }
 
 const getUsers = async () => {
