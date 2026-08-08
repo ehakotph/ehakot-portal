@@ -46,7 +46,7 @@
           size="lg"
           block
           :loading="loading"
-          class="mt-2"
+          class="mt-2 rounded-full"
         />
       </UForm>
 
@@ -122,4 +122,4 @@ const onSignUpSubmit = async () => {
     transform: translateY(0);
   }
 }
-</style>
+</style>

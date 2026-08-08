@@ -19,7 +19,10 @@
       <div class="mb-6 h-px w-full bg-gradient-to-r from-transparent via-emerald-400/40 to-transparent" />
 
       <!-- Tabs -->
-      <UTabs :items="tabs" class="w-full">
+      <UTabs :items="tabs" class="w-full" :ui="{
+        list: 'rounded-2xl',
+        indicator: 'rounded-2xl'
+      }">
         <template #user>
           <UForm :state="userForm" class="space-y-5 mt-5" @submit="onUserSubmit">
             <UFormField label="Email" name="email">
@@ -50,7 +53,7 @@
               size="lg"
               block
               :loading="loadingUser"
-              class="mt-2"
+              class="mt-2 rounded-full py-2.5"
             />
           </UForm>
         </template>
@@ -86,7 +89,7 @@
               size="lg"
               block
               :loading="loadingAdmin"
-              class="mt-2"
+              class="mt-2 rounded-full py-2.5"
             />
           </UForm>
         </template>
