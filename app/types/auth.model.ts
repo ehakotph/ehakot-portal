@@ -115,8 +115,10 @@ export interface Notifications {
   id: number;
   user_id: number;
   title: string;
-  description: number;
-  readAt: Date;
+  description: string | null;
+  read_at: Date | string | null;
+  readAt?: Date | string | null;
+  type?: string;
 
   created_at: Date | string;
   updated_at: Date | string;
