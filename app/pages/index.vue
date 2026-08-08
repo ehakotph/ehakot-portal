@@ -450,7 +450,16 @@ async function saveLocation(lat: number, lng: number) {
         color: 'success',
         icon: 'i-lucide-map-pin-check'
       })
-    } else {
+    } 
+    else if (globalStore.user && !isLoggedIn.value) {
+      toast.add({
+        title: 'Error',
+        description: 'Please re-login to continue',
+        color: 'error',
+        icon: 'i-lucide-cloud-off'
+      })
+    }
+    else {
       globalStore.setGuestLocation({
         lat,
         lng,
