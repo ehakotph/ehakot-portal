@@ -4,6 +4,7 @@
         placeholder="Search for brgy name"
         class="w-full" size="xl" 
         icon="i-lucide-search"
+        v-model="searchQuery"
         />
         <USlideover :title="isEditing ? 'Edit Barangay': 'Create New Barangay'" v-model:open="open" :dismissible="false" v-if="isSuperAdmin">
             <UButton @click="creating" label="Create New Barangay" />
@@ -64,6 +65,9 @@ const globalStore = useGlobalStore();
 const { user } = storeToRefs(globalStore);
 const route = useRoute();
 
+let debounceTimer: ReturnType<typeof setTimeout> | undefined;
+
+const searchQuery = ref("");
 const barangays = ref<Barangays[]>([])
 const open = ref(false)
 const query = ref({
@@ -138,7 +142,9 @@ const getBarangays = async () => {
         query: buildQuery({
             page: query.value.page,
             limit: query.value.limit,
-            city_id: user.value?.role === 'admin' ? cityId.value : undefined
+            searchColumns: 'name',
+            searchKeyword: searchQuery.value,
+            city_id: cityId.value,
         }),
     });
     barangays.value = data;
@@ -147,6 +153,12 @@ const getBarangays = async () => {
 
 
 watch(query, async () => await getBarangays(), { deep: true });
+
+watch(searchQuery, (val) => {
+  if (debounceTimer) clearTimeout(debounceTimer)
+
+  debounceTimer = setTimeout(async () => await getBarangays(), 500);
+});
 
 onBeforeMount(async ()=> {
     await getBarangays();

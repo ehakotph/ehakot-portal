@@ -4,6 +4,7 @@
         placeholder="Search for trucks (plate number, city)"
         class="w-full" size="xl" 
         icon="i-lucide-search"
+        v-model="searchQuery"
         />
         <USlideover :title="isEditing ? 'Edit Truck': 'Create New Truck'" v-model:open="open" :dismissible="false">
             <UButton @click="open = true; form.plate_number = ''; isSuperAdmin && (form.city_id = (user?.city_id ?? undefined))" label="Create New Truck" />
@@ -80,7 +81,9 @@ import type { TruckForm } from '~/types/form.model';
 
 const globalStore = useGlobalStore();
 const { user } = storeToRefs(globalStore);
+let debounceTimer: ReturnType<typeof setTimeout> | undefined;
 
+const searchQuery = ref("");
 const open = ref(false)
 const isEditing = ref(false)
 const cities = ref<Cities[]>([])
@@ -149,15 +152,23 @@ const getTrucks = async () => {
             page: query.value.page,
             limit: query.value.limit,
             includes: 'city:name',
-            searchKeyword: user.value?.role === 'admin' ? user.value?.city_id : undefined,
-            searchColumns: user.value?.role === 'admin' ? 'city_id' : undefined,
+            searchColumns: 'plate_number,city.name',
+            searchKeyword: searchQuery.value,
+            city_id: user.value?.role === 'admin' ? 'user.value?.city_id' : undefined
         }),
     });
 
     trucks.value = data;
     query.value.total = total;
 };
+
 watch(query, async () => await getTrucks(), { deep: true });
+
+watch(searchQuery, (val) => {
+  if (debounceTimer) clearTimeout(debounceTimer)
+
+  debounceTimer = setTimeout(async () => await getTrucks(), 500);
+});
 
 onBeforeMount(async ()=> {
     const { data } = await useCities().getCities({query: 'paginate=false'})
