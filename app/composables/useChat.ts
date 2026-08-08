@@ -1,44 +1,81 @@
-import type { Sample } from "~/types/auth.model";
-import type { BaseResponse } from "~/types/form.model";
+export interface ChatMessage {
+  role: 'user' | 'assistant'
+  content: string
+}
 
 export const useChat = () => {
-  const { $api } = useNuxtApp();
+  const { $api } = useNuxtApp()
+  const authStore = useAuthStore()
+  const globalStore = useGlobalStore()
+  const toast = useToast()
 
-  const getSample = async ({ query = '' }: { query?: string } = {}): Promise<BaseResponse<Sample[]>> => {
-    try {
-      const api = $api();
-      const response = await api(`/sample${query ? `?${query}` : ''}`)
+  const messages = ref<ChatMessage[]>([])
+  const inputMessage = ref('')
+  const isSending = ref(false)
 
-      return {data: (response as any).data as Sample[], total: (response as any).totalCount as number};
-    } catch (error) {
-      console.error('Failed to fetch sample:', error);
-      throw error;
+  const sendMessage = async (customText?: string) => {
+    const textToSend = (customText ?? inputMessage.value).trim()
+    if (!textToSend || isSending.value) return
+
+    messages.value.push({ role: 'user', content: textToSend })
+    if (!customText) {
+      inputMessage.value = ''
     }
-  };
 
-  const createSample = async (payload: Sample): Promise<any> => {
+    isSending.value = true
+
     try {
-      const api = $api();
-      const response = await api('/sample', { method: 'POST', body: payload });
+      if (!authStore.token && globalStore.user?.email && globalStore.user?.birthdate) {
+        try {
+          const userEmail = globalStore.user.email
+          const userBirthdate = globalStore.user.birthdate
+          if (userEmail && userBirthdate) {
+            const bdateStr = new Date(userBirthdate).toISOString().split('T')[0]!
+            await authStore.birthdateLogin(userEmail, bdateStr)
+          }
+        } catch (authErr) {
+          console.warn('Auto-login attempt prior to chat failed:', authErr)
+        }
+      }
 
-      return response;
-    } catch (error) {
-      console.error('Failed to create sample:', error);
-      throw error;
+      const api = $api()
+      const response: { text: string } = await api('/chat', {
+        method: 'POST',
+        body: {
+          messages: messages.value.map((m) => ({
+            role: m.role,
+            content: m.content
+          }))
+        }
+      })
+
+      const replyText = response?.text || 'I apologize, but I could not process your request at this moment.'
+      messages.value.push({ role: 'assistant', content: replyText })
+    } catch (error: any) {
+      console.error('Failed to send chat message:', error)
+      toast.add({
+        title: 'Chat Assistant Error',
+        description: error?.data?.message || 'Failed to send message to eHakot AI. Please try again.',
+        color: 'error'
+      })
+      messages.value.push({
+        role: 'assistant',
+        content: 'Sorry, I ran into a connection error. Please make sure you are logged in and try again.'
+      })
+    } finally {
+      isSending.value = false
     }
-  };
+  }
 
-  const updateSample = async (payload: Sample, id: number): Promise<any> => {
-    try {
-      const api = $api();
-      const response = await api(`/sample/${id}`, { method: 'PUT', body: payload });
+  const clearHistory = () => {
+    messages.value = []
+  }
 
-      return response;
-    } catch (error) {
-      console.error('Failed to update sample:', error);
-      throw error;
-    }
-  };
-
-  return { getSample, createSample, updateSample };
-};
+  return {
+    messages,
+    inputMessage,
+    isSending,
+    sendMessage,
+    clearHistory
+  }
+}

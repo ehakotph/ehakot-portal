@@ -1,11 +1,18 @@
 <template>
     <div class="flex flex-col h-full w-64">
         <!-- sidebar content goes here -->
-        <div class="flex gap-x-1 items-center p-4 w-full group" v-if="user">
+        <div  v-if="user" class="flex gap-x-1 items-center p-4 w-full group">
           <img src="/icon.png" alt="eHakot Logo" class="w-10 h-8 shrink-0"/>
           <div class="flex-1 min-w-0 flex flex-col gap-y-0.5">
             <p class="font-bold text-sm truncate group-hover:text-slate-300 text-slate-400">{{ user?.email }}</p>
             <p class="text-xs italic text-emerald-500">{{ user?.role }}</p>
+          </div>
+        </div>
+        <div v-else class="flex gap-x-1 items-center p-4 w-full group" >
+            <img src="/icon.png" alt="eHakot Logo" class="w-10 h-8 shrink-0"/>
+          <div class="flex-1 min-w-0 flex flex-col gap-y-0.5">
+            <p class="font-bold text-lg text-slate-900 dark:text-slate-100">E-Hakot</p>
+            <p class="text-xs italic text-slate-500 dark:text-slate-400">Smart Waste Collection Monitoring System</p>
           </div>
         </div>
         <USeparator />
