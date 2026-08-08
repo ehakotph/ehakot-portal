@@ -30,7 +30,7 @@
         <div class="p-4 mt-auto">
         <UButton 
         v-if="user"
-        @click="useAuthStore().logout()"
+        @click="isLogoutModalOpen = true"
         label="Logout"
         icon="i-lucide-log-out"
         color="neutral"
@@ -47,12 +47,42 @@
         class="justify-center w-full mt-auto"
         />
         </div>
+
+        <!-- Logout Confirmation Modal -->
+        <UModal v-model:open="isLogoutModalOpen">
+          <template #content>
+            <UCard>
+              <template #header>
+                <div class="flex items-center gap-2 text-red-500">
+                  <UIcon name="i-lucide-log-out" class="w-6 h-6" />
+                  <h3 class="text-lg font-semibold">Confirm Logout</h3>
+                </div>
+              </template>
+              <p class="text-sm text-slate-300">
+                Are you sure you want to logout? You will need to sign in again to access your account.
+              </p>
+              <template #footer>
+                <div class="flex justify-end gap-3">
+                  <UButton color="neutral" variant="soft" @click="isLogoutModalOpen = false">Cancel</UButton>
+                  <UButton color="error" @click="confirmLogout">Logout</UButton>
+                </div>
+              </template>
+            </UCard>
+          </template>
+        </UModal>
     </div>
 </template>
 
 <script lang="ts" setup>
 const globalStore = useGlobalStore();
 const { user } = storeToRefs(globalStore);
+
+const isLogoutModalOpen = ref(false);
+
+function confirmLogout() {
+  isLogoutModalOpen.value = false;
+  useAuthStore().logout();
+}
 
 interface SidebarModule {
   label: string;
