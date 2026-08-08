@@ -1,25 +1,25 @@
-import type { Sample } from "~/types/auth.model";
+import type { Cities } from "~/types/auth.model";
 import type { BaseResponse } from "~/types/form.model";
 
-export const useSample = () => {
+export const useCities = () => {
   const { $api } = useNuxtApp();
 
-  const getSample = async ({ query = '' }: { query?: string } = {}): Promise<BaseResponse<Sample[]>> => {
+  const getCities = async ({ query = '' }: { query?: string } = {}): Promise<BaseResponse<Cities[]>> => {
     try {
       const api = $api();
-      const response = await api(`/sample${query ? `?${query}` : ''}`)
+      const response = await api(`/cities${query ? `?${query}` : ''}`)
 
-      return {data: (response as any).data as Sample[], total: (response as any).totalCount as number};
+      return {data: (response as any).data as Cities[], total: (response as any).totalCount as number};
     } catch (error) {
       console.error('Failed to fetch sample:', error);
       throw error;
     }
   };
 
-  const createSample = async (payload: Sample): Promise<any> => {
+  const createCities = async (payload: {name : string}): Promise<any> => {
     try {
       const api = $api();
-      const response = await api('/sample', { method: 'POST', body: payload });
+      const response = await api('/cities', { method: 'POST', body: payload });
 
       return response;
     } catch (error) {
@@ -28,10 +28,10 @@ export const useSample = () => {
     }
   };
 
-  const updateSample = async (payload: Sample, id: number): Promise<any> => {
+  const updateCities = async (payload: {name: string}, id: number): Promise<any> => {
     try {
       const api = $api();
-      const response = await api(`/sample/${id}`, { method: 'PUT', body: payload });
+      const response = await api(`/cities/${id}`, { method: 'PUT', body: payload });
 
       return response;
     } catch (error) {
@@ -40,5 +40,5 @@ export const useSample = () => {
     }
   };
 
-  return { getSample, createSample, updateSample };
+  return { getCities, createCities, updateCities };
 };

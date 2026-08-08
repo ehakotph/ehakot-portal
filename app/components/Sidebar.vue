@@ -2,7 +2,7 @@
     <div class="flex flex-col h-full w-64">
         <!-- sidebar content goes here -->
         <div class="flex gap-x-1 items-center p-4 w-full group" v-if="user">
-          <UIcon name="i-lucide-circle-user" class="w-8 h-8 shrink-0 text-slate-500"/>
+          <img src="/icon.png" alt="eHakot Logo" class="w-10 h-8 shrink-0"/>
           <div class="flex-1 min-w-0 flex flex-col gap-y-0.5">
             <p class="font-bold text-sm truncate group-hover:text-slate-300 text-slate-400">{{ user?.email }}</p>
             <p class="text-xs italic text-emerald-500">{{ user?.role }}</p>
