@@ -1,9 +1,10 @@
 <template>
     <Header>
         <UInput 
-        placeholder="Search for name, role, email"
+        placeholder="Search for email"
         class="w-full" size="xl" 
         icon="i-lucide-search"
+        v-model="searchQuery"
         />
         <USlideover :title="isEditing ? 'Edit User': 'Create New User'" v-model:open="open" :dismissible="false">
             <UButton @click="open = true; form.role = 'driver'; isEditing = false;" label="Create New User" />
@@ -115,7 +116,9 @@ import type { User } from '~/types/auth.model';
 
 const globalStore = useGlobalStore();
 const { user } = storeToRefs(globalStore);
+let debounceTimer: ReturnType<typeof setTimeout> | undefined;
 
+const searchQuery = ref("");
 const show = ref(false)
 const open = ref(false)
 const isEditing = ref(false)
@@ -188,8 +191,8 @@ const getUsers = async () => {
             page: query.value.page,
             limit: query.value.limit,
             includes: 'city:name',
-            searchKeyword: user.value?.role === 'admin' ? user.value?.city_id : undefined,
-            searchColumns: user.value?.role === 'admin'? 'city_id': undefined,
+            searchColumns: 'email',
+            searchKeyword: searchQuery.value,
             role: user.value?.role === 'admin' ? 'driver' : ['admin', 'driver'],
         }),
     });
@@ -218,6 +221,12 @@ function onEmailChange(email: string) {
 }
 
 watch(query, async () => await getUsers(), { deep: true });
+
+watch(searchQuery, (val) => {
+  if (debounceTimer) clearTimeout(debounceTimer)
+
+  debounceTimer = setTimeout(async () => await getUsers(), 500);
+});
 
 onBeforeMount(async ()=> {
     await getUsers();

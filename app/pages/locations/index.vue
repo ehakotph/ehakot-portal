@@ -1,9 +1,10 @@
 <template>
     <Header>
         <UInput 
-        placeholder="Search for city or admin email"
+        placeholder="Search for city name"
         class="w-full" size="xl"
         icon="i-lucide-search"
+        v-model="searchQuery"
         />
         <USlideover :title="isEditing ? 'Edit City': 'Create New City'" v-model:open="open" :dismissible="false" v-if="isSuperAdmin">
             <UButton @click="creating" label="Create New City" />
@@ -65,6 +66,9 @@
 import type { Cities, User } from '~/types/auth.model';
 import type { CityForm } from '~/types/form.model';
 
+let debounceTimer: ReturnType<typeof setTimeout> | undefined;
+
+const searchQuery = ref("");
 const globalStore = useGlobalStore();
 const { user } = storeToRefs(globalStore);
 const cities = ref<Cities[]>([])
@@ -136,8 +140,9 @@ const getCities = async () => {
             page: query.value.page,
             limit: query.value.limit,
             fields: 'name,id',
-            searchKeyword: user.value?.role === 'admin' ? user.value?.city_id : undefined,
-            searchColumns: user.value?.role === 'admin' ? 'id' : undefined,
+            city_id: user.value?.role === 'admin' ? user.value?.city_id : undefined,
+            searchColumns: 'name',
+            searchKeyword: searchQuery.value
         }),
     });
 
@@ -146,6 +151,12 @@ const getCities = async () => {
 };
 
 watch(query, async () => await getCities(), { deep: true });
+
+watch(searchQuery, (val) => {
+  if (debounceTimer) clearTimeout(debounceTimer)
+
+  debounceTimer = setTimeout(async () => await getCities(), 500);
+});
 
 onBeforeMount(async ()=> {
     await getCities();
