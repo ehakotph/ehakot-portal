@@ -9,7 +9,28 @@
             <UButton @click="open = true; form.plate_number = ''; isSuperAdmin && (form.city_id = (user?.city_id ?? undefined))" label="Create New Truck" />
 
             <template #body>
-                Create / update form
+                <div class="flex flex-col gap-y-2">
+                    <USelectMenu
+                        :disabled="!isSuperAdmin"
+                        v-model="form.city_id"
+                        :items="cities"
+                        value-key="id"
+                        label-key="name"
+                        class="w-full"
+                        icon="i-lucide-building-2"
+                    >
+                        <template #item-label="{ item }">
+                            <div class="flex flex-col">
+                                <span>{{ item.name }}</span>
+                            </div>
+                        </template>
+                    </USelectMenu>
+                    <UInput 
+                    placeholder="Truck plate no."
+                    class="w-full"
+                    v-model:model-value="form.plate_number"
+                    />
+                </div>
             </template>
 
             <template #footer>
@@ -91,11 +112,35 @@ const hasChanges = computed(() => {
 const isSuperAdmin = computed(() => user.value?.role === 'superadmin');
 
 const onSubmit = async () => {
+    try {
+        if (isEditing.value) {
+            await useTrucks().updateTrucks(form.value, form.value.id || 0);
+        } else {
+            await useTrucks().createTrucks(form.value);
+        }
 
+        open.value = false;
+        form.value.plate_number = '';
+        form.value.id = undefined; 
+        await getTrucks();
+    } catch (error) {
+        throw error;
+    }
 }
 
 const editing = (truck: Trucks) => {
+    isEditing.value = true;
+    open.value = true;
 
+    form.value.plate_number = truck.plate_number;
+    form.value.city_id = truck.city_id;
+    form.value.id = truck.id;
+    
+    editForm.value = {
+        plate_number: truck.plate_number,
+        city_id: truck.city_id,
+        id: truck.id
+    }
 }
 
 const getTrucks = async () => {
