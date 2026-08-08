@@ -1,7 +1,7 @@
 import type { Sample } from "~/types/auth.model";
 import type { BaseResponse } from "~/types/form.model";
 
-export const useSample = () => {
+export const useTrucks = () => {
   const { $api } = useNuxtApp();
 
   const getSample = async ({ query = '' }: { query?: string } = {}): Promise<BaseResponse<Sample[]>> => {

@@ -48,10 +48,10 @@
 </template>
 
 <script lang="ts" setup>
-import type { Collections } from '~/types/auth.model'
+import type { Collections, Cities } from '~/types/auth.model'
 import type { MapLocation } from '~/components/Map.vue'
 import type { NominatimResult } from '~/components/LocationSearchBar.vue'
-import { cities } from '~/constants/cities'
+import { useCities } from '~/composables/useCities'
 
 const globalStore = useGlobalStore()
 const { user, guestLocation } = storeToRefs(globalStore)
@@ -76,7 +76,19 @@ const isEffectiveLoggedIn = computed(() => {
 
 const { updateUserLocation } = useUsers()
 const { searchCollectionByLocation } = useCollections()
+const { getCities } = useCities()
 const toast = useToast()
+
+const cities = ref<Cities[]>([])
+
+async function fetchCities() {
+  try {
+    const response = await getCities()
+    cities.value = response?.data ?? []
+  } catch (err) {
+    console.error('Failed to fetch cities:', err)
+  }
+}
 
 const isDrawerOpen = ref(true)
 const isGuestAlertVisible = ref(true)
@@ -121,11 +133,13 @@ const currentUserBarangay = computed<string | null>(() => {
 const currentUserCity = computed<string | null>(() => {
   if (selectedCity.value) return selectedCity.value
   if (user.value?.location_city) return user.value.location_city
+  if (user.value?.city?.name) return user.value.city.name
   if (user.value?.city_id) {
-    const foundCity = cities.find(c => c.id === user.value?.city_id)
+    const foundCity = cities.value.find(c => c.id === user.value?.city_id)
     if (foundCity) return foundCity.name
   }
   if (isLoggedIn.value && authUser.value?.location_city) return authUser.value.location_city
+  if (isLoggedIn.value && authUser.value?.city?.name) return authUser.value.city.name
   if (guestLocation.value?.city) return guestLocation.value.city
   return null
 })
@@ -264,6 +278,7 @@ async function fetchTruckLocations() {
 let truckLocationInterval: ReturnType<typeof setInterval> | null = null
 
 onMounted(() => {
+  fetchCities()
   fetchTruckLocations()
   truckLocationInterval = setInterval(fetchTruckLocations, 5000)
 })
