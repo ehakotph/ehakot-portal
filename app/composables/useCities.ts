@@ -1,5 +1,5 @@
-import type { Cities } from '~/types/auth.model';
-import type { BaseResponse } from '~/types/form.model';
+import type { Cities } from "~/types/auth.model";
+import type { BaseResponse } from "~/types/form.model";
 
 export const useCities = () => {
   const { $api } = useNuxtApp();
