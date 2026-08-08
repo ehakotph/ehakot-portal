@@ -1,6 +1,6 @@
 <template>
   <div class="flex justify-center items-center h-screen w-screen">
-    Welcome to chat!
+    Welcome to collections!
   </div>
 </template>
 
