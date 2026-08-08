@@ -1,9 +1,10 @@
 <template>
     <Header>
         <UInput 
-        placeholder="Search for collections (plate number, city)"
+        placeholder="Search for collections (city, barangay, truck)"
         class="w-full" size="xl" 
         icon="i-lucide-search"
+        v-model="searchQuery"
         />
         <USlideover :title="isEditing ? 'Edit Collection': 'Create New Collection'" v-model:open="open" :dismissible="false">
             <UButton @click="creating" label="Create New Collection" />
@@ -247,7 +248,7 @@ import type { Barangays, Cities, Collections, Trucks, User } from '~/types/auth.
 import type { BulkCollectionsForm, CollectionsForm } from '~/types/form.model';
 import { today, getLocalTimeZone, CalendarDate, type DateValue, Time } from '@internationalized/date';
 
-
+let debounceTimer: ReturnType<typeof setTimeout> | undefined;
 const minDate = today(getLocalTimeZone());
 const globalStore = useGlobalStore();
 const { user } = storeToRefs(globalStore);
@@ -260,6 +261,7 @@ const cities = ref<Cities[]>([])
 const drivers = ref<User[]>([])
 const trucks = ref<Trucks[]>([])
 const barangays = ref<Barangays[]>([])
+const searchQuery = ref("");
 
 const dateValue = shallowRef<DateValue | null>(new CalendarDate(today(getLocalTimeZone()).year, today(getLocalTimeZone()).month, today(getLocalTimeZone()).day));
 const bulkDateValue = shallowRef<DateValue[]>([new CalendarDate(today(getLocalTimeZone()).year, today(getLocalTimeZone()).month, today(getLocalTimeZone()).day)]);
@@ -482,6 +484,8 @@ const onCityChange = async() => {
 const getCollections = async () => {
    const { data } = await useCollections().getCollections({
         query: buildQuery({
+            searchColumns: 'city.name,barangays,truck.plate_number',
+            searchKeyword: searchQuery.value,
             paginate: false,
             city_id: user.value?.role === 'admin' ? user.value?.city_id : undefined,
             includes: 'city:name,truck:plate_number,driver:email'
@@ -532,6 +536,12 @@ watch(bulkDateValue, (dates) => {
         return date.toDate(getLocalTimeZone());
     });
 }, { immediate: true });
+
+watch(searchQuery, (val) => {
+  if (debounceTimer) clearTimeout(debounceTimer)
+
+  debounceTimer = setTimeout(async () => await getCollections(), 500);
+});
 
 onBeforeMount(async ()=> {
     await getCollections();
