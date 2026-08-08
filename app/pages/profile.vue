@@ -61,7 +61,7 @@
                         </div>
                         <div class="flex flex-col gap-y-1 min-w-fit">
                             <p>{{ formatDate2(report.created_at, DateFormatType.DateWithTime) }}</p>
-                            <UButton label="Confirm Collection" size="xs" v-if="report.status === 'ASSUMPTION_COLLECTED'" @click="confirmCollection(report)"/>
+                            <UButton label="Confirm Collection" size="xs" v-if="report.status === 'ASSUMPTION_COLLECTED'" @click="openConfirmModal(report)"/>
                         </div>
                     </div>
                 </div>
@@ -193,6 +193,29 @@
             />
         </template>
     </USlideover>
+
+    <!-- Confirm Collection Modal -->
+    <UModal v-model:open="isConfirmModalOpen">
+      <template #content>
+        <UCard>
+          <template #header>
+            <div class="flex items-center gap-2 text-emerald-500">
+              <UIcon name="i-lucide-circle-check" class="w-6 h-6" />
+              <h3 class="text-lg font-semibold">Confirm Collection</h3>
+            </div>
+          </template>
+          <p class="text-sm text-slate-300">
+            Are you sure you want to confirm that this garbage report has been collected?
+          </p>
+          <template #footer>
+            <div class="flex justify-end gap-3">
+              <UButton color="neutral" variant="soft" @click="isConfirmModalOpen = false">Cancel</UButton>
+              <UButton color="primary" @click="handleConfirmCollection">Confirm</UButton>
+            </div>
+          </template>
+        </UCard>
+      </template>
+    </UModal>
 </template>
 
 <script lang="ts" setup>
@@ -207,6 +230,8 @@ const reports = ref<GarbageReports[]>([])
 const collections = ref<Collections[]>([])
 const open = ref(false)
 const show = ref(false)
+const isConfirmModalOpen = ref(false)
+const selectedReport = ref<GarbageReports | null>(null)
 const maxDate = new CalendarDate(today(getLocalTimeZone()).year, today(getLocalTimeZone()).month, today(getLocalTimeZone()).day)
 const df = new DateFormatter('en-US', { dateStyle: 'medium' })
 const dateValue = shallowRef<DateValue | null>(
@@ -305,14 +330,21 @@ const getSchedules = async () => {
     collections.value = data;
 }
 
-const confirmCollection = async (report: GarbageReports)=> {
+const openConfirmModal = (report: GarbageReports) => {
+    selectedReport.value = report
+    isConfirmModalOpen.value = true
+}
+
+const handleConfirmCollection = async () => {
+    if (!selectedReport.value) return
     try {
-        await useGarbageReports().updateGarbageReport({status: 'COLLECTED', confirmation_date: new Date()}, report.id)
+        await useGarbageReports().updateGarbageReport({status: 'COLLECTED', confirmation_date: new Date()}, selectedReport.value.id)
+        isConfirmModalOpen.value = false
+        selectedReport.value = null
         await getReports()        
     } catch (error) {
         throw error
     }
-
 }
 
 onBeforeMount(async ()=> {
