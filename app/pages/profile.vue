@@ -59,7 +59,10 @@
                             <p>{{ report.location_barangay }}, {{ report.location_city }}</p>
                             <p v-if="report.status === 'COLLECTED'" class="text-slate-500">Confirmed At: {{ formatDate2(report.confirmation_date ?? report.updated_at, DateFormatType.DateWithTime) }}</p>
                         </div>
-                        <p class="min-w-fit">{{ formatDate2(report.created_at, DateFormatType.DateWithTime) }}</p>
+                        <div class="flex flex-col gap-y-1 min-w-fit">
+                            <p>{{ formatDate2(report.created_at, DateFormatType.DateWithTime) }}</p>
+                            <UButton label="Confirm Collection" size="xs" v-if="report.status === 'ASSUMPTION_COLLECTED'" @click="confirmCollection(report)"/>
+                        </div>
                     </div>
                 </div>
                 <UPagination
@@ -300,6 +303,16 @@ const getSchedules = async () => {
     });
 
     collections.value = data;
+}
+
+const confirmCollection = async (report: GarbageReports)=> {
+    try {
+        await useGarbageReports().updateGarbageReport({status: 'COLLECTED', confirmation_date: new Date()}, report.id)
+        await getReports()        
+    } catch (error) {
+        throw error
+    }
+
 }
 
 onBeforeMount(async ()=> {

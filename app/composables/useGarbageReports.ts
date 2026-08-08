@@ -56,5 +56,15 @@ export const useGarbageReports = () => {
     }
   };
 
-  return { createGarbageReport, getGarbageReports, getReports, deleteGarbageReport };
+  const updateGarbageReport = async (payload: any, id: number): Promise<any> => {
+    try {
+      const api = $api();
+      return await api(`/garbage-reports/${id}`, { method: 'PUT', body: payload });
+    } catch (error) {
+      console.error('Failed to update garbage report:', error);
+      throw error;
+    }
+  };
+
+  return { createGarbageReport, getGarbageReports, getReports, deleteGarbageReport, updateGarbageReport };
 };
