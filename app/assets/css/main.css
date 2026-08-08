@@ -1,0 +1,31 @@
+@import "tailwindcss";
+@import "@nuxt/ui";
+
+@theme static {
+  --font-sans: 'Public Sans', sans-serif;
+
+  --color-emerald-50: #EFFDF5;
+  --color-emerald-100: #D9FBE8;
+  --color-emerald-200: #B3F5D1;
+  --color-emerald-300: #75EDAE;
+  --color-emerald-400: #00DC82;
+  --color-emerald-500: #00C16A;
+  --color-emerald-600: #00A155;
+  --color-emerald-700: #007F45;
+  --color-emerald-800: #016538;
+  --color-emerald-900: #0A5331;
+  --color-emerald-950: #052E16;
+}
+
+/* Toast notifications highest z-index override */
+[data-slot="toaster"],
+[data-slot="toast"],
+[id^="toaster"],
+.toaster,
+div[role="region"][aria-label*="Notification"],
+div[role="region"][aria-label*="Toast"],
+div[role="region"][aria-label*="notification"],
+div[role="region"][aria-label*="toast"],
+ol[tabindex="-1"] {
+  z-index: 99999 !important;
+}
